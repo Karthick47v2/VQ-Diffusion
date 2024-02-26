@@ -1,0 +1,11 @@
+*.pyc
+.idea/
+
+/venv
+/__pycache__
+
+*.tgz
+*.gz
+
+/OUTPUT
+/CUB_200*

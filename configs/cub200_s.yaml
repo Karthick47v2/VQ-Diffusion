@@ -1,4 +1,4 @@
-# change from o4
+# VQ-Diffusion-S on cub200
 model:
   target: image_synthesis.modeling.models.dalle.DALLE
   params:
@@ -42,18 +42,19 @@ model:
           target: image_synthesis.modeling.transformers.transformer_utils.Text2ImageTransformer
           params:
             attn_type: 'selfcross'
-            n_layer: 19
+            n_layer: 18
             condition_seq_len: 77    ###### 77 for clip and 256 for dalle
             content_seq_len: 1024  # 32 x 32
             content_spatial_size: [32, 32]
-            n_embd: 1024 # the dim of embedding dims
+            n_embd: 192 # the dim of embedding dims
             condition_dim: 512
             n_head: 16 
             attn_pdrop: 0.0
             resid_pdrop: 0.0
             block_activate: GELU2
             timestep_type: 'adalayernorm'    # adainsnorm or adalayernorm and abs
-            mlp_hidden_times: 4
+            mlp_hidden_times: 2
+            mlp_type: 'conv_mlp'
         condition_emb_config:
           target: image_synthesis.modeling.embeddings.clip_text_embedding.CLIPTextEmbedding
           params:
@@ -69,7 +70,7 @@ model:
           params:
             num_embed: 2887    #should be quantize_number
             spatial_size: !!python/tuple [32, 32]
-            embed_dim: 1024
+            embed_dim: 192
             trainable: True
             pos_emb_type: embedding
 

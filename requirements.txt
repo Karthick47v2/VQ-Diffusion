@@ -1,0 +1,15 @@
+torch==2.0
+numpy
+pyyaml
+tensorboard
+Pillow
+torchvision
+packaging
+omegaconf
+pytorch_lightning
+einops
+timm==0.3.4
+lmdb
+einops
+ftfy
+albumentations

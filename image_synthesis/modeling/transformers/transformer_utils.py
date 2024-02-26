@@ -433,9 +433,9 @@ class Text2ImageTransformer(nn.Module):
 
         for block_idx in range(len(self.blocks)):   
             if self.use_checkpoint == False:
-                emb, att_weight = self.blocks[block_idx](emb, cond_emb, t.cuda()) # B x (Ld+Lt) x D, B x (Ld+Lt) x (Ld+Lt)
+                emb, att_weight = self.blocks[block_idx](emb, cond_emb, t.to('cuda:1')) # B x (Ld+Lt) x D, B x (Ld+Lt) x (Ld+Lt)
             else:
-                emb, att_weight = checkpoint(self.blocks[block_idx], emb, cond_emb, t.cuda())
+                emb, att_weight = checkpoint(self.blocks[block_idx], emb, cond_emb, t.to('cuda:1'))
         logits = self.to_logits(emb) # B x (Ld+Lt) x n
         out = rearrange(logits, 'b l c -> b c l')
         return out
@@ -577,7 +577,7 @@ class Condition2ImageTransformer(nn.Module):
         emb = cont_emb
 
         for block_idx in range(len(self.blocks)):   
-            emb, att_weight = self.blocks[block_idx](emb, cond_emb, t.cuda()) # B x (Ld+Lt) x D, B x (Ld+Lt) x (Ld+Lt)
+            emb, att_weight = self.blocks[block_idx](emb, cond_emb, t.to('cuda:1')) # B x (Ld+Lt) x D, B x (Ld+Lt) x (Ld+Lt)
         logits = self.to_logits(emb) # B x (Ld+Lt) x n
         out = rearrange(logits, 'b l c -> b c l')
         return out
@@ -717,7 +717,7 @@ class UnCondition2ImageTransformer(nn.Module):
         emb = cont_emb
 
         for block_idx in range(len(self.blocks)):   
-            emb, att_weight = self.blocks[block_idx](emb, cond_emb, t.cuda()) # B x (Ld+Lt) x D, B x (Ld+Lt) x (Ld+Lt)
+            emb, att_weight = self.blocks[block_idx](emb, cond_emb, t.to('cuda:1')) # B x (Ld+Lt) x D, B x (Ld+Lt) x (Ld+Lt)
         logits = self.to_logits(emb) # B x (Ld+Lt) x n
         out = rearrange(logits, 'b l c -> b c l')
         return out

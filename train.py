@@ -21,20 +21,22 @@ from image_synthesis.distributed.launch import launch
 # environment variables
 NODE_RANK = os.environ['AZ_BATCHAI_TASK_INDEX'] if 'AZ_BATCHAI_TASK_INDEX' in os.environ else 0
 NODE_RANK = int(NODE_RANK)
-MASTER_ADDR, MASTER_PORT = os.environ['AZ_BATCH_MASTER_NODE'].split(':') if 'AZ_BATCH_MASTER_NODE' in os.environ else ("127.0.0.1", 29500)
+MASTER_ADDR, MASTER_PORT = os.environ['AZ_BATCH_MASTER_NODE'].split(
+    ':') if 'AZ_BATCH_MASTER_NODE' in os.environ else ("127.0.0.1", 29500)
 MASTER_PORT = int(MASTER_PORT)
 DIST_URL = 'tcp://%s:%s' % (MASTER_ADDR, MASTER_PORT)
 
+
 def get_args():
     parser = argparse.ArgumentParser(description='PyTorch Training script')
-    parser.add_argument('--config_file', type=str, default='configs/vqvae_celeba_attribute_cond.yaml', 
+    parser.add_argument('--config_file', type=str, default='configs/vqvae_celeba_attribute_cond.yaml',
                         help='path of config file')
-    parser.add_argument('--name', type=str, default='', 
+    parser.add_argument('--name', type=str, default='',
                         help='the name of this experiment, if not provided, set to'
-                             'the name of config file') 
-    parser.add_argument('--output', type=str, default='OUTPUT', 
-                        help='directory to save the results')    
-    parser.add_argument('--log_frequency', type=int, default=100, 
+                             'the name of config file')
+    parser.add_argument('--output', type=str, default='OUTPUT',
+                        help='directory to save the results')
+    parser.add_argument('--log_frequency', type=int, default=100,
                         help='print frequency (default: 100)')
     parser.add_argument('--load_path', type=str, default=None,
                         help='path to model that need to be loaded, '
@@ -49,24 +51,24 @@ def get_args():
                         help='number of nodes for distributed training')
     parser.add_argument('--node_rank', type=int, default=NODE_RANK,
                         help='node rank for distributed training')
-    parser.add_argument('--dist_url', type=str, default=DIST_URL, 
+    parser.add_argument('--dist_url', type=str, default=DIST_URL,
                         help='url used to set up distributed training')
     parser.add_argument('--gpu', type=int, default=None,
                         help='GPU id to use. If given, only the specific gpu will be'
                         ' used, and ddp will be disabled')
-    parser.add_argument('--sync_bn', action='store_true', 
+    parser.add_argument('--sync_bn', action='store_true',
                         help='use sync BN layer')
-    parser.add_argument('--tensorboard', action='store_true', 
+    parser.add_argument('--tensorboard', action='store_true',
                         help='use tensorboard for logging')
-    parser.add_argument('--timestamp', action='store_true', # default=True,
+    parser.add_argument('--timestamp', action='store_true',  # default=True,
                         help='use tensorboard for logging')
     # args for random
-    parser.add_argument('--seed', type=int, default=None, 
+    parser.add_argument('--seed', type=int, default=None,
                         help='seed for initializing training. ')
-    parser.add_argument('--cudnn_deterministic', action='store_true', 
+    parser.add_argument('--cudnn_deterministic', action='store_true',
                         help='set cudnn.deterministic True')
 
-    parser.add_argument('--amp', action='store_true', # default=True,
+    parser.add_argument('--amp', action='store_true',  # default=True,
                         help='automatic mixture of precesion')
 
     parser.add_argument('--debug', action='store_true', default=False,
@@ -77,14 +79,15 @@ def get_args():
         help="Modify config options using the command-line",
         default=None,
         nargs=argparse.REMAINDER,
-    )  
+    )
 
     args = parser.parse_args()
     args.cwd = os.path.abspath(os.path.dirname(__file__))
 
     if args.resume_name is not None:
         args.name = args.resume_name
-        args.config_file = os.path.join(args.output, args.resume_name, 'configs', 'config.yaml')
+        args.config_file = os.path.join(
+            args.output, args.resume_name, 'configs', 'config.yaml')
         args.auto_resume = True
     else:
         if args.name == '':
@@ -103,14 +106,17 @@ def get_args():
     args.save_dir = os.path.join(args.output, args.name)
     return args
 
+
 def main():
     args = get_args()
 
-    if args.seed is not None or args.cudnn_deterministic:
-        seed_everything(args.seed, args.cudnn_deterministic)
+    # if args.seed is not None or args.cudnn_deterministic:
+    #     seed_everything(args.seed, args.cudnn_deterministic)
+    seed_everything(42, True)
 
     if args.gpu is not None:
-        warnings.warn('You have chosen a specific GPU. This will completely disable ddp.')
+        warnings.warn(
+            'You have chosen a specific GPU. This will completely disable ddp.')
         torch.cuda.set_device(args.gpu)
         args.ngpus_per_node = 1
         args.world_size = 1
@@ -122,7 +128,8 @@ def main():
         args.ngpus_per_node = torch.cuda.device_count()
         args.world_size = args.ngpus_per_node * args.num_node
 
-    launch(main_worker, args.ngpus_per_node, args.num_node, args.node_rank, args.dist_url, args=(args,))
+    launch(main_worker, args.ngpus_per_node, args.num_node,
+           args.node_rank, args.dist_url, args=(args,))
 
 
 def main_worker(local_rank, args):
@@ -141,7 +148,7 @@ def main_worker(local_rank, args):
     logger = Logger(args)
     logger.save_config(config)
 
-    # get model 
+    # get model
     model = build_model(config, args)
     # print(model)
     if args.sync_bn:
@@ -151,10 +158,11 @@ def main_worker(local_rank, args):
     dataloader_info = build_dataloader(config, args)
 
     # get solver
-    solver = Solver(config=config, args=args, model=model, dataloader=dataloader_info, logger=logger)
+    solver = Solver(config=config, args=args, model=model,
+                    dataloader=dataloader_info, logger=logger)
 
-    # resume 
-    if args.load_path is not None: # only load the model paramters
+    # resume
+    if args.load_path is not None:  # only load the model paramters
         solver.resume(path=args.load_path,
                       # load_model=True,
                       load_optimizer_and_scheduler=False,
@@ -164,6 +172,7 @@ def main_worker(local_rank, args):
     # with torch.autograd.set_detect_anomaly(True):
     #     solver.train()
     solver.train()
+
 
 if __name__ == '__main__':
     main()
